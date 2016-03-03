@@ -1,0 +1,126 @@
+<head>
+  <title>Joel's social website aggregator</title>
+</head>
+
+<body>
+
+</body>
+
+<template name="Main_template">
+	<div class="container">
+      {{> yield "navbar"}}
+      {{> yield "main"}}
+	</div>    
+</template>
+
+<template name="welcome_screen">
+  <div class="container">
+    <div class="jumbotron">
+      <h1>Welcome to my social website aggregator</h1>
+        <br/>
+      <a href="/principal" class="btn btn-info text-center">ENTER</a>
+    </div>
+  </div>
+</template>
+
+<template name="navbar">
+	<!-- navbar  - you will be putting the login functions here -->
+	<nav class="navbar navbar-default navbar-fixed-top">
+	  <div class="container-fluid">
+	    <div class="navbar-header">
+	      <a class="navbar-brand" href="#">
+	        Joel's social website aggregator
+	      </a>
+	    </div>
+	  </div>
+	</nav>
+</template>
+
+<!-- template that displays several website items -->
+<template name="principal_screen">
+    <div class="container">
+        <div class="col-xs-12 col-md-8">
+            {{> website_list}}
+        </div>
+        <div class="col-xs-12 col-md-4">
+            {{> website_form}}
+            {{> website_recomendations}}
+        </div>
+    </div>
+</template>
+
+
+<template name="website_form">
+  <div class="well well-lg">
+	<a class="btn btn-default js-toggle-website-form" href="#">
+  		<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+        New website
+	</a>
+	<div id="website_form" class="hidden_div">
+		<form class="js-save-website-form">
+		  <div class="form-group">
+		    <label for="url">Site address</label>
+		    <input type="text" class="form-control" id="url" placeholder="http://www.mysite.com">
+		  </div>
+		  <div class="form-group">
+		    <label for="title">Title</label>
+		    <input type="text" class="form-control" id="title" placeholder="Mysite">
+		  </div>
+		    <div class="form-group">
+		    <label for="description">Description</label>
+		    <input type="text" class="form-control" id="description" placeholder="I found this site really useful for ...">
+		  </div>
+
+		  <p class="text-right">
+              <button type="submit" class="btn btn-default btn-success">Add website</button>
+          </p>
+		</form>
+	</div>
+  </div>
+</template>
+
+<template name="website_recomendations">
+  <div class="well well-lg">
+	<p> Recomendations </p>
+  </div>
+</template>
+
+<!-- template that displays several website items -->
+<template name="website_list">
+<!--    <h2>Website list</h2>-->
+    {{#each websites}}
+        {{>website_item}}
+    {{/each}}
+</template>
+
+
+<!-- template that displays individual website entries -->
+<template name="website_item">
+
+<!--  <div class="col-xs-6 col-md-6">-->
+  	<div class="thumbnail">
+        <h3><a href="{{url}}">{{title}}</a></h3>
+  			
+  		<div class="caption">           
+
+            <p> {{description}} </p>
+        
+            <a href="#" class="btn btn-default js-upvote">
+                <span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>
+            </a>
+            <a href="#" class="btn btn-default js-downvote">
+                <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
+            </a>
+            <button class="js-info-image btn btn-info">Info</button>
+
+            <button class="js-dele-image btn btn-danger  user-btns pull-right">Delete</button>
+            <button class="js-edit-image btn btn-primary user-btns pull-right">Edit</button>
+     	</div>
+     </div>
+<!--   </div>  / col -->
+
+</template>
+
+
+
+
