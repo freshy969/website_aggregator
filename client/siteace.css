@@ -18,3 +18,13 @@ body {
 .user-btns {
     margin-right: 3px;
 }
+
+.brand_icon_navbar {
+    max-height: 20px;
+    max-width: 20px;
+}
+
+.fixed_vote_button {
+    background-color: #e6e6e6;
+    border-color: #ccc;
+}
