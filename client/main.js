@@ -36,6 +36,10 @@ Accounts.ui.config({
 Session.set("itemsLimit", 40);
 
 
+/// Comments template config
+Comments.ui.config({
+   template: 'bootstrap'
+});
 
 
 /////

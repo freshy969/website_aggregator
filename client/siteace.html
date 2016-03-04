@@ -184,8 +184,10 @@
       {{#if currentUser}}
         <p>Your vote: {{{userVote}}}</p>
       {{/if}}
-        <br/>
-      <a href="/principal" class="btn btn-info text-center">Back</a>
+    
+      <div class="comment-section">
+        {{> commentsBox id=_id}}
+      </div>
       
       
   </div>
