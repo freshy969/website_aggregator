@@ -14,6 +14,17 @@ Router.route('/principal', function () {
   this.render('principal_screen', { to : "main" });
 });
 
+Router.route('/website/:_id', function () {
+  this.render('navbar', { to : "navbar" });    
+  this.render('detail_screen', { 
+      to : "main",
+      data : function() {
+        return Websites.findOne( { _id: this.params._id} );
+      }
+  });
+});
+
+
 
 /// Accounts config
 Accounts.ui.config({
@@ -62,22 +73,8 @@ Template.website_list.helpers({
 
 // helper functions for each item in the list
 Template.website_item.helpers({
-    
-    prettifyDate: function(ts) {
-        var month = ts.getMonth() + 1;
-        return ts.getDate() + '-' + month + '-' + ts.getFullYear()
-               + ' ' + ts.getHours() + ':' + ts.getMinutes() + ':' + ts.getSeconds();
-    },
-    
-    getUser: function(user_id){
-      var user = Meteor.users.findOne({_id:user_id});
-      if (user){
-        return user.username;
-      } else {
-        return 'nobody';
-      }
-    },
-
+    prettifyDate: format_date,
+    getUser: user_name,
     votedUp: function() {
         return (test_user_vote(this._id, Meteor.user()._id) == 1);
     },    
@@ -87,6 +84,17 @@ Template.website_item.helpers({
 });
 
 
+// helper functions for detail screen
+Template.detail_screen.helpers({
+    prettifyDate: format_date,
+    getUser: user_name,
+    userVote: function() {
+        var vote = test_user_vote(this._id, Meteor.user()._id);
+        if (vote == 1)  return '<span class="label label-success">Up</span>';
+        if (vote == -1) return '<span class="label label-danger">Down</span>';
+        return '<span class="label label-default">No vote</span>';;
+    }
+});
 
 /////
 // template events 
@@ -98,6 +106,22 @@ function test_user_vote(website_id, user_id) {
     if (Websites.findOne( { _id: website_id, votes_down: { $all: [user_id] }} ) ) { return -1; }
     return 0;
 }
+
+function format_date(ts) {
+    var month = ts.getMonth() + 1;
+    return ts.getDate() + '-' + month + '-' + ts.getFullYear()
+           + ' ' + ts.getHours() + ':' + ts.getMinutes() + ':' + ts.getSeconds();
+}
+
+function user_name(user_id) {
+  var user = Meteor.users.findOne({_id:user_id});
+  if (user){
+    return user.username;
+  } else {
+    return 'nobody';
+  }
+}
+
 
 
 Template.website_item.events({

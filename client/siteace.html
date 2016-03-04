@@ -13,6 +13,7 @@
 	</div>    
 </template>
 
+
 <template name="welcome_screen">
   <div class="container">
     <div class="jumbotron">
@@ -45,7 +46,7 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-        <li class="active"><a href="#">Home<span class="sr-only">(current)</span></a></li>
+        <li id="nav_bar_home_link" class="active"><a href="/principal">Home</a></li>
       </ul>
         
       <ul class="nav navbar-nav navbar-right">
@@ -143,7 +144,7 @@
   		<div class="caption">           
 
             <p> {{description}} </p>
-            <p> Posted on: <strong>{{prettifyDate createdOn}}</strong>{{#if createdBy}}, created by: <strong>{{getUser createdBy}}</strong>{{/if}}</p>
+            <p> Posted on: <strong>{{prettifyDate createdOn}}</strong>{{#if createdBy}}, by: <strong>{{getUser createdBy}}</strong>{{/if}}</p>
 
             <a href="#" class="btn btn-default js-upvote
                                {{#if votedUp }} btn-success {{/if}}">
@@ -154,7 +155,8 @@
                 <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"> {{count_vdw}}</span>
             </a>
             
-            <button class="js-info-image btn btn-info">Info</button>
+            <a href="/website/{{_id}}" class="btn btn-info text-center">Info</a>
+            
             <div id="must_log_warning_{{_id}}" class="alert alert-danger hidden_div fade in" role="alert">
                 <button type="button" class="close js-hide-alert"><span>&times;</span></button>
                 Only logged users can vote.
@@ -171,4 +173,20 @@
 
 
 
-
+<template name="detail_screen">
+  <div class="container">
+      <h2><strong>{{title}}</strong></h2>
+      <h3><a href="{{url}}">{{url}}</a></h3>
+      <p>{{description}}</p>
+      <p> Posted on: <strong>{{prettifyDate createdOn}}</strong></p>
+      <p> Posted by: <strong>{{getUser createdBy}}</strong></p>
+      <p> Votes: <span class="label label-success">{{count_vup}}</span> / <span class="label label-danger">{{count_vdw}}</span></p>
+      {{#if currentUser}}
+        <p>Your vote: {{{userVote}}}</p>
+      {{/if}}
+        <br/>
+      <a href="/principal" class="btn btn-info text-center">Back</a>
+      
+      
+  </div>
+</template>
