@@ -12,7 +12,7 @@ Router.route('/', function () {
 Router.route('/principal', function () {
   this.render('navbar', { to : "navbar" });    
   this.render('principal_screen', { to : "main" });
-});
+}, { name : "prin" });
 
 Router.route('/website/:_id', function () {
   this.render('navbar', { to : "navbar" });    
@@ -22,7 +22,7 @@ Router.route('/website/:_id', function () {
         return Websites.findOne( { _id: this.params._id} );
       }
   });
-});
+}, { name : "det" });
 
 
 
@@ -33,7 +33,19 @@ Accounts.ui.config({
 
 
 /// Infinite scroll config
-Session.set("itemsLimit", 40);
+Session.set("itemsLimit", 6);
+lastScrollTop = 0; 
+$(window).scroll(function(event) { // test if we are near the bottom of the window
+    if($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
+        
+        var scrollTop = $(this).scrollTop();  // page position
+        // test if we are going down, and add items in this case
+        if (scrollTop > lastScrollTop)  Session.set("itemsLimit", Session.get("itemsLimit") + 4);
+        lastScrollTop = scrollTop;
+    }
+});
+
+
 
 
 /// Comments template config
@@ -55,6 +67,15 @@ Template.body.helpers({
     }
   }
 });
+
+
+// helper function for the navbar
+Template.navbar.helpers({
+    isThisRoute: function(route_name) {
+        return (Router.current().route.getName() == route_name);   
+    }
+});
+
 
 // helper function that returns all available websites
 Template.website_list.helpers({
@@ -126,8 +147,21 @@ function user_name(user_id) {
   }
 }
 
+function get_web_info() {
+    alert('ee');
+    HTTP.call("POST", "http://api.twitter.com/xyz", // "http://docs.meteor.com/",
+          function (error, result) {
+            console.log(result);
+            alert ('res');
+          });
+}
 
 
+
+Template.website_add_new.events({
+    "click .js-get-web-info": function(event) { get_web_info(); }
+});
+    
 Template.website_item.events({
     "click .js-upvote": function(event) {
         var website_id = this._id;

@@ -46,7 +46,7 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-        <li id="nav_bar_home_link" class="active"><a href="/principal">Home</a></li>
+        <li id="nav_bar_home_link" class="{{#if isThisRoute 'prin'}}active{{/if}}"><a href="/principal">Home</a></li>
       </ul>
         
       <ul class="nav navbar-nav navbar-right">
@@ -85,6 +85,7 @@
 
 <template name="website_add_new">
   <div class="well well-lg">
+<!--      <button type="button" class="js-get-web-info">GET WEB INFO</button>-->
       {{#if currentUser}}
         <a class="btn btn-default js-toggle-website-form" href="#">
             <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
@@ -129,6 +130,7 @@
 <!-- template that displays several website items -->
 <template name="website_list">
 <!--    <h2>Website list</h2>-->
+    
     {{#each websites}}
         {{>website_item}}
     {{/each}}
