@@ -73,18 +73,33 @@ Template.body.helpers({
 Template.navbar.helpers({
     isThisRoute: function(route_name) {
         return (Router.current().route.getName() == route_name);   
+    },
+    filterActive: function(){
+      if (Session.get("listFilter")) return true;
+      else                           return false;
     }
 });
 
 
 // helper function that returns all available websites
 Template.website_list.helpers({
-    websites:function(){
-        return Websites.find(
-            {},
-            { sort  : { count_vup: -1, count_vdw: 1 }, 
-              limit : Session.get("itemsLimit")}
-        );
+    websites:function() {
+        if (Session.get("listFilter")) {
+            return  Websites.find(
+                { $or: [ { title       : { $regex: Session.get("listFilter"), $options: 'i' } },
+                         { description : { $regex: Session.get("listFilter"), $options: 'i' } }
+                       ] 
+                },
+                { sort  : { count_vup: -1, count_vdw: 1 }, 
+                  limit : Session.get("itemsLimit")}
+            );
+        } else {
+            return Websites.find(
+                {},
+                { sort  : { count_vup: -1, count_vdw: 1 }, 
+                  limit : Session.get("itemsLimit")}
+            );
+        }
         
 //        return Websites.collection.aggregate([
 //            { $unwind: "votes_up"}, 
@@ -105,6 +120,9 @@ Template.website_item.helpers({
     },    
     votedDown: function() {
         return (test_user_vote(this._id, Meteor.user()._id) == -1);
+    },
+    isOwner: function(ownerId) {
+        return (Meteor.user()._id == ownerId);
     }
 });
 
@@ -157,6 +175,22 @@ function get_web_info() {
 }
 
 
+
+    
+
+
+Template.navbar.events({
+    "submit .js-set-item-filter": function(event) { // Set filter to the list
+        console.log('js-set-item-filter -> ' + event.target.filtertext.value);        
+        Session.set("listFilter", event.target.filtertext.value);
+        return false;
+    },
+    "click .js-remove-filter": function(event) {
+        Session.set("listFilter", undefined);
+        $('[name=filtertext]').val("");
+        return false;
+    }
+});
 
 Template.website_add_new.events({
     "click .js-get-web-info": function(event) { get_web_info(); }
@@ -223,8 +257,65 @@ Template.website_item.events({
     
     "click .js-hide-alert": function(event) {
         $('#must_log_warning_' + this._id).hide("fast");
+    },
+    
+    "click .js-delete-website": function(event) {
+        var website_id = this._id;
+    
+        if (this.createdBy == Meteor.user()._id) {  // only the owner can do this
+            $("#item_" + website_id).hide('slow', function() {
+                Websites.remove({ "_id" : website_id });
+            })  
+        }
+    },
+    
+    "click .js-show-edit-modal": function(event) {
+        console.log('js-show-edit-modal');
+        $("#edit_top_title").text(this.title);
+        $("#edit_id").val(this._id);
+        $("#edit_url").val(this.url);
+        $("#edit_title").val(this.title);
+        $("#edit_description").val(this.description);
+        
+        $("#edit_website_form").modal('show');
     }
 })
+
+
+Template.edit_website_form.events({
+    "submit .js-edit-website": function(event){
+        console.log('js-edit-website -> ' + event.target.edit_id.value);
+
+        if (Meteor.user()) {
+            var new_web = {
+                url         : event.target.edit_url.value,
+                title       : event.target.edit_title.value,
+                description : event.target.edit_description.value,
+                modifiedOn  : new Date()
+            };
+            console.log('new:' + new_web);
+            
+            // Websites posted by users should have an URL and a description.
+            if (!new_web.url || !new_web.description) {
+                $('#required_warning2').show();
+                return false;
+            } else {
+                // Update the colletion
+                Websites.update({ _id: event.target.edit_id.value },
+                                { $set: new_web }
+                                 );
+
+                
+                // Close form
+                $("#edit_website_form").modal('hide');
+                return false;                
+            }
+        }        
+
+        return false;// stop the form submit from reloading the page
+
+    }
+});
 
 
 /// Template related to the behaivor of the new website form
@@ -235,7 +326,6 @@ Template.website_add_new.events({
     "submit .js-save-website-form":function(event){
 
         if (Meteor.user()) {
-            var url = event.target.url.value;
             var new_web = {
                 url         : event.target.url.value,
                 title       : event.target.title.value,

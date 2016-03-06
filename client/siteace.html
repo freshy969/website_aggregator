@@ -52,13 +52,20 @@
       <ul class="nav navbar-nav navbar-right">
           <li><div class="navbar-form">{{> loginButtons align="right"}}</div></li>
       </ul>
-        
-      <form class="navbar-form navbar-search navbar-left" role="search">
-        <div class="form-group">
-          <input type="text" class="form-control" placeholder="Search">
-        </div>
-        <button type="submit" class="btn btn-default">Filter</button>
-      </form>
+    
+      {{#if isThisRoute 'prin'}}
+          <form class="navbar-form navbar-search navbar-left js-set-item-filter" role="search">
+            <div class="form-group">
+              <input type="text" class="form-control" placeholder="Search" name="filtertext">
+            </div>
+            <button type="submit" class="btn btn-default">Filter</button>
+          </form>
+          {{#if filterActive}}
+          <div class="nav navbar-form navbar-left" style="padding-top: 9px;">
+              <a href="#" class="js-remove-filter">Remove filter</a>
+          </div>
+          {{/if}}
+      {{/if}}
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
 </nav>
@@ -73,6 +80,7 @@
 <template name="principal_screen">
     <div class="container">
         <div class="col-xs-12 col-md-8">
+            {{> edit_website_form}}
             {{> website_list}}
         </div>
         <div class="col-xs-12 col-md-4">
@@ -119,6 +127,41 @@
   </div>
 </template>
 
+<template name="edit_website_form">
+
+  <div class="modal fade" id="edit_website_form">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form class="js-edit-website">
+            <div class="modal-header">
+              <div class="modal-title"><h4>Edit: <strong id="edit_top_title"></strong></h4></div>
+            </div>
+            <div class="modal-body">
+                  <input type="text" class="hidden" id="edit_id"/>
+                  <div class="form-group">
+                    <label for="url">Site address</label>
+                    <input type="text" class="form-control" id="edit_url" placeholder="http://www.mysite.com" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" class="form-control" id="edit_title" placeholder="Mysite">
+                  </div>
+                    <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" class="form-control" id="edit_description" placeholder="I found this site really useful for ..." required>
+                  </div>
+                  <div id="required_warning2" class="alert alert-danger hidden_div" role="alert">Required fields empty!</div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-success" >save</button>
+              <button class="btn btn-warning" data-dismiss="modal">cancel</button>
+            </div>  
+        </form> 
+      </div>
+    </div>
+  </div>
+</template>
+
 
 
 <template name="website_recomendations">
@@ -140,7 +183,7 @@
 <!-- template that displays individual website entries -->
 <template name="website_item">
 
-  	<div class="thumbnail">
+  	<div class="thumbnail" id="item_{{_id}}">
         <h3><a href="{{url}}">{{title}}</a></h3>
   			
   		<div class="caption">           
@@ -164,10 +207,11 @@
                 Only logged users can vote.
             </div>
 
-            {{#if currentUser}}
-                <button class="js-dele-image btn btn-danger  user-btns pull-right">Delete</button>
-                <button class="js-edit-image btn btn-primary user-btns pull-right">Edit</button>
+            {{#if isOwner createdBy}}
+                <button class="js-delete-website  btn btn-danger  user-btns pull-right">Delete</button>
+                <button class="js-show-edit-modal btn btn-primary user-btns pull-right">Edit</button>
             {{/if}}
+                <button class="js-show-edit-modal btn btn-primary user-btns pull-right">Edit</button>
      	</div>
      </div>
 
@@ -177,7 +221,13 @@
 
 <template name="detail_screen">
   <div class="container">
-      <h2><strong>{{title}}</strong></h2>
+      <h2>
+          <a href="/principal">
+              <img src="../glyphicons-222-unshare.png" alt="back arrow"/>
+          </a>      
+          <strong> {{title}}</strong>
+      </h2>
+      
       <h3><a href="{{url}}">{{url}}</a></h3>
       <p>{{description}}</p>
       <p> Posted on: <strong>{{prettifyDate createdOn}}</strong></p>
