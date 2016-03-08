@@ -81,6 +81,7 @@
     <div class="container">
         <div class="col-xs-12 col-md-8">
             {{> edit_website_form}}
+            {{> url_html_suggested_info}}
             {{> website_list}}
         </div>
         <div class="col-xs-12 col-md-4">
@@ -94,6 +95,8 @@
 <template name="website_add_new">
   <div class="well well-lg">
 <!--      <button type="button" class="js-get-web-info">GET WEB INFO</button>-->
+      
+      
       {{#if currentUser}}
         <a class="btn btn-default js-toggle-website-form" href="#">
             <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
@@ -102,8 +105,9 @@
         <div id="website_add_new" class="hidden_div">
             <form class="js-save-website-form">
               <div class="form-group">
-                <label for="url">Site address</label>
-                <input type="text" class="form-control" id="url" placeholder="http://www.mysite.com" required>
+                <label for="url">Site address</label> <span id="waiting_url_info_indicator" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+                <input type="text" class="form-control js-new-web-url" id="url" placeholder="http://www.mysite.com" 
+                           value="" required>
               </div>
               <div class="form-group">
                 <label for="title">Title</label>
@@ -126,6 +130,8 @@
       {{/if}}
   </div>
 </template>
+
+
 
 <template name="edit_website_form">
 
@@ -164,9 +170,52 @@
 
 
 
+<template name="url_html_suggested_info">
+
+  <div class="modal fade" id="url_html_suggested_info">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title"><h4>We suggest you this information</h4></div>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>The site you typed:</label>
+            <p id="sug_url"></p>
+          </div>
+          <div class="form-group">
+            <label>Title:</label>
+            <p id="sug_title"></p>
+          </div>
+          <div class="form-group">
+            <label>Description:</label>
+            <p id="sug_description"></p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-warning" data-dismiss="modal">Dimiss</button>
+          <button class="btn btn-success js-set-suggestions">Ok, get it</button>
+        </div> 
+      </div>
+    </div>
+  </div>
+</template>
+
+
+
 <template name="website_recomendations">
   <div class="well well-lg">
-	<p> Recomendations </p>
+	<p><strong>Recommendations:</strong></p>
+    {{#each recom}}
+      
+    <div class="alert alert-info fade in">
+        <a href="#" class="close js-del-recommendation" aria-label="close">×</a>
+        <strong>You should try:</strong> <a href="{{url}}" target="_blank" >{{title}}</a>
+    </div>
+      
+    {{/each}}
+      
+      
   </div>
 </template>
 
@@ -211,7 +260,6 @@
                 <button class="js-delete-website  btn btn-danger  user-btns pull-right">Delete</button>
                 <button class="js-show-edit-modal btn btn-primary user-btns pull-right">Edit</button>
             {{/if}}
-                <button class="js-show-edit-modal btn btn-primary user-btns pull-right">Edit</button>
      	</div>
      </div>
 

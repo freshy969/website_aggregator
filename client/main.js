@@ -12,6 +12,7 @@ Router.route('/', function () {
 Router.route('/principal', function () {
   this.render('navbar', { to : "navbar" });    
   this.render('principal_screen', { to : "main" });
+  
 }, { name : "prin" });
 
 Router.route('/website/:_id', function () {
@@ -23,6 +24,7 @@ Router.route('/website/:_id', function () {
       }
   });
 }, { name : "det" });
+
 
 
 
@@ -116,15 +118,19 @@ Template.website_item.helpers({
     prettifyDate: format_date,
     getUser: user_name,
     votedUp: function() {
-        return (test_user_vote(this._id, Meteor.user()._id) == 1);
+        if (Meteor.user())  return (test_user_vote(this._id, Meteor.user()._id) == 1);
+        else                return false;
     },    
     votedDown: function() {
-        return (test_user_vote(this._id, Meteor.user()._id) == -1);
+        if (Meteor.user())  return (test_user_vote(this._id, Meteor.user()._id) == -1);
+        else                return false;
     },
     isOwner: function(ownerId) {
-        return (Meteor.user()._id == ownerId);
+        if (Meteor.user())  return (Meteor.user()._id == ownerId);
+        else                return false;
     }
 });
+
 
 
 // helper functions for detail screen
@@ -132,10 +138,25 @@ Template.detail_screen.helpers({
     prettifyDate: format_date,
     getUser: user_name,
     userVote: function() {
-        var vote = test_user_vote(this._id, Meteor.user()._id);
-        if (vote == 1)  return '<span class="label label-success">Up</span>';
-        if (vote == -1) return '<span class="label label-danger">Down</span>';
-        return '<span class="label label-default">No vote</span>';;
+        if (Meteor.user()) {
+            var vote = test_user_vote(this._id, Meteor.user()._id);
+            if (vote == 1)  return '<span class="label label-success">Up</span>';
+            if (vote == -1) return '<span class="label label-danger">Down</span>';
+        }
+        return '<span class="label label-default">No vote</span>';
+    }
+});
+
+
+// helper functions for recommendations box
+Template.website_recomendations.helpers({
+    recom: function() {
+        if (Meteor.user()) {
+            return Recommendations.find(
+                    { user_id: Meteor.user()._id },
+                    { limit : 4}
+                );
+        } 
     }
 });
 
@@ -165,18 +186,103 @@ function user_name(user_id) {
   }
 }
 
-function get_web_info() {
-    alert('ee');
-    HTTP.call("POST", "http://api.twitter.com/xyz", // "http://docs.meteor.com/",
-          function (error, result) {
-            console.log(result);
-            alert ('res');
-          });
+
+// This function launch an http request (in the server), and inspect the response
+// in order to find metadata about this url (title and description)
+function get_web_info(website_url) {
+    console.log('get_web_info');
+//    var website_url = 'https://blogdelbarba.wordpress.com';
+//    var website_url = 'http://www.londoninternational.ac.uk/courses/undergraduate/goldsmiths/bsc-creative-computing-bsc-diploma-work-entry-route';
+    
+    if (website_url == "") return false; // it cannot be empty
+    
+    // To avoid look for the same url again
+    if (Session.get("url_suggestion") == website_url) return false;
+    Session.set("url_suggestion", website_url);
+    $('#waiting_url_info_indicator').show();
+    
+    try {
+        Meteor.call('get_website_info_by_http', website_url, function(err, response) {
+
+            if (err) {
+                $('#waiting_url_info_indicator').hide();
+                return false;
+            }
+
+            console.log('Inspect the html response');
+
+            if (response.statusCode == 200) {
+
+                // Look for the <title> tag, and the <meta name="description" />
+                var cont = response.content;
+
+                var pos1 = cont.indexOf('>', cont.indexOf('<title') + 1) + 1;
+                var pos2 = cont.indexOf('</title', pos1);
+                var html_title = cont.substring(pos1, pos2);
+                console.log('title = ' + html_title);
+
+                var html_description = "";
+                var pos1 = cont.indexOf('<meta');
+                var count = 0;
+                while (pos1 != -1) {
+
+                    pos2 = cont.indexOf('>', pos1);
+                    var all_meta = cont.substring(pos1, pos2);
+//                    console.log('meta = ' + all_meta);
+
+                    var name_cont = parser_html_tag(all_meta, 'name');
+                    if (name_cont != "") {
+                        if (name_cont.indexOf('description') > -1) {
+                            html_description = parser_html_tag(all_meta, 'content');
+                            console.log ('html_description = ' + html_description);
+                            pos1 = -1;
+                        }
+                    }
+                    if (html_description == '') pos1 = cont.indexOf('<meta', pos2 + 1);
+                    count++; if (count > 100) pos1 = -1; /// To avoid looping
+                }
+
+                if (html_title != '' || html_description != '') {
+                    $('#url_html_suggested_info #sug_url').html('<a href="' + website_url + '" target="_blank"><strong>' + website_url + '</strong></a>');
+                    $('#url_html_suggested_info #sug_title').text(html_title);
+                    $('#url_html_suggested_info #sug_description').text(html_description);
+
+                    $("#url_html_suggested_info").modal('show');
+                }
+            }
+            $('#waiting_url_info_indicator').hide();
+        });
+        
+    } catch(err) { 
+        console.log('Error: ' + err);
+        $('#waiting_url_info_indicator').hide(); 
+    }
+}
+
+
+function parser_html_tag(str, tag_name) {
+    
+    var tag_name_ini = str.indexOf(tag_name);
+    if (tag_name_ini == -1) return "";
+    
+    var eq_ini = str.indexOf('=', tag_name_ini);
+    var quote_type = '"';
+    var quote_ini = str.indexOf(quote_type, eq_ini);
+    var quote_ini2 = str.indexOf('"', eq_ini);
+    if (quote_ini2 > -1 && quote_ini2 < quote_ini) {
+        quote_type = "'";
+        quote_ini = quote_ini2;
+    }
+    var quote_fi = str.indexOf(quote_type, quote_ini + 1);
+    if (quote_ini == -1 || quote_fi == -1) return "";
+    
+    return str.substring(quote_ini + 1, quote_fi);
 }
 
 
 
-    
+
+
 
 
 Template.navbar.events({
@@ -193,7 +299,35 @@ Template.navbar.events({
 });
 
 Template.website_add_new.events({
-    "click .js-get-web-info": function(event) { get_web_info(); }
+    "click .js-get-web-info": function(event) { generate_webrefs(); },
+    "focusout .js-new-web-url": function(event) { 
+        console.log('inspect -> ' + $('.js-save-website-form #url').val());
+        get_web_info($('.js-save-website-form #url').val());
+    }
+});
+// Hide the waiting indicator just after the template is loaded
+Template.website_add_new.rendered = function() {
+    $('#waiting_url_info_indicator').hide();
+};
+
+Template.url_html_suggested_info.events({
+    "click .js-set-suggestions": function(event) {
+        $('#website_add_new #title').val( $('#url_html_suggested_info #sug_title').text() );
+        $('#website_add_new #description').val( $('#url_html_suggested_info #sug_description').text() );
+        $("#url_html_suggested_info").modal('hide');
+    }
+});
+
+
+
+Template.website_recomendations.events({
+    "click .js-del-recommendation": function(event) { 
+        var that = this;
+        $(event.target).parent().hide('slow', function() {
+            console.log('delete recommendation ' + that._id);
+            Recommendations.remove({ _id: that._id});
+        });
+    }
 });
     
 Template.website_item.events({
@@ -219,6 +353,7 @@ Template.website_item.events({
                             {_id: website_id}, 
                             { $push: { votes_up: user_id }, $inc: { count_vup: 1 } }
                         );
+//                recEngine.link(user_id, website_id);    // Recommendation input
             }
         } else {
             $('#must_log_warning_' + website_id).show();
@@ -335,11 +470,11 @@ Template.website_add_new.events({
                 votes_up    : [],
                 votes_down  : [],
                 count_vup   : 0,
-                count_vdw   : 0
+                count_vdw   : 0,
+                refs        : [],
+                count_refs  : 0
             };
-//            console.log('url:' + new_web.url);
-//            console.log('title:' + new_web.title);
-//            console.log('description:' + new_web.description);
+//            console.log('url:' + new_web);
             
             // Websites posted by users should have an URL and a description.
             if (!new_web.url || !new_web.description) {
@@ -347,7 +482,13 @@ Template.website_add_new.events({
                 return false;
             } else {
                 // Insert to collection
-                Websites.insert(new_web);
+                var website_id = Websites.insert(new_web);
+                
+                // Generate references (WebRefs) immediately
+                new_web._id = website_id;
+                generate_webrefs(new_web);
+                var count_refs = Recommendations.find({user_id: Meteor.user()._id}).count();
+                set_references_web_user(Meteor.user(), new_web, count_refs);
                 
                 // Clear form fields
                 event.target.url.value = '';
@@ -355,9 +496,7 @@ Template.website_add_new.events({
                 event.target.description.value = '';
                 
                 // Close form
-                $("#website_add_new").toggle("slow", function() {
-                    // Animation complete.
-                });
+                $("#website_add_new").toggle("slow");
                 return false;                
             }
         }        
@@ -369,4 +508,6 @@ Template.website_add_new.events({
 
 
 
+
+// joel-barba-website-aggregator.meteor.com
 
