@@ -19,6 +19,8 @@ An automatic feature is triggered after typing an url. It launches an http reque
 
 Only the owner of the post can edit or delete it.
 
+To avoid loading the whole list of posts, there's an infinit scroll so more posts will be loaded as you scroll the page down.
+
 ## Voting
 Every logged user can vote up or down each website (one vote per user per website). The most voted up websites will appear first in the list.
 
