@@ -31,3 +31,8 @@ The comment system is powered by the [arkham:comments-ui](https://atmospherejs.c
 
 ## Background
 There's a background proces which, based on user information, generate different website recommendations. It looks for posted websites, voted up and commented websites, to launch an http request to a Google Search Engine, and get back similar websites in order to generate recommendations that will be displaying at the right side of the page, personalized for each user.
+
+
+## About it
+This is the [final task](https://www.coursera.org/learn/meteor-development/peer/aRIRG/build-a-social-website-aggregator) of the ["Introduction to Meteor.js development"](https://www.coursera.org/learn/meteor-development/) online course, served on [Coursera](https://www.coursera.org), and taught by [University of London](http://www.londoninternational.ac.uk/).
+
