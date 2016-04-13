@@ -1,7 +1,7 @@
 # Joel's website aggregator
 This is a project from a Meteor.js course. It is a social aggregator to share interesting websites with different users, vote them, and comment them.
 
-You can try a working instance uploaded here: [http://joel-barba-website-aggregator.meteor.com](http://joel-barba-website-aggregator.meteor.com/).
+You can try a working instance uploaded here: [http://joel-barba-web-aggregator.meteorapp.com/](http://joel-barba-web-aggregator.meteorapp.com/).
 
 It uses MongoDB to store the data in 3 different collections:
 
